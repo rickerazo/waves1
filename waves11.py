@@ -75,7 +75,6 @@ def vecf(t, y0):
 	return f
 
 def Vt_cross(t,y0): return y0[0]-Vt
-
 Vt_cross.terminal= True
 Vt_cross.direction = 1
 
@@ -83,16 +82,21 @@ Vt_cross.direction = 1
 y0 = np.array((v0,h0,m0,n2))
 y2 = np.array((v2,h2,m2,n2))
 spike_times = np.zeros((1,nr_neurons))
+statevar = np.zeros((nr_neurons,4))
+for i in np.arange(0,nr_neurons):
+	statevar[i,:] = y0
 t1= 0
 tspan = [0, 10]
 Ie_local = Ispike[0]
 pre_n = solve_ivp(vecf, tspan, y0,events= Vt_cross, method = 'RK45',rtol=1e-5,atol=1e-7)
 tspan = [t1, pre_n.t_events[0]]
-for i in np.arange(1,nr_neurons):
+for i in np.arange(0,nr_neurons):
 	# print i
 	Ie_local = Ispike[i]
-	neur1 = solve_ivp(vecf, tspan, y0, events= Vt_cross, method = 'RK45',rtol=1e-5,atol=1e-7)
+	neur1 = solve_ivp(vecf, tspan, statevar[i,:], events= Vt_cross, method = 'RK45',rtol=1e-5,atol=1e-7)
+	statevar[i,:] = neur1.y[:,-1]
 	if np.size(neur1.t_events[0]):
 		spike_times[[0],[i]] = neur1.t_events[0]
 	plt.ion()
 	plt.plot(neur1.t, neur1.y[0,:])
+plt.plot(pre_n.t,pre_n.y[0,:])
