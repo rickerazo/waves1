@@ -12,7 +12,7 @@ from tempfile import TemporaryFile
 
 nr_neurons = 200
 ap1 = nr_neurons+1
-tau2 = 4
+tau2 = 3
 delta1 = 1e-2
 sigma1 = 3e-2
 gsyn= 50
