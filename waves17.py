@@ -123,3 +123,4 @@ neur2 = solve_ivp(vecfalpha, tspan_pre, y0,events= Vt_cross, method = 'RK45',rto
 plt.ion()
 plt.plot(pre_n.t,pre_n.y[0,:])
 plt.plot(neur1.t,neur1.y[0,:])
+plt.plot(neur2.t,neur2.y[0,:])
