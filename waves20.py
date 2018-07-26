@@ -10,17 +10,19 @@ from scipy.integrate import solve_ivp
 from tempfile import TemporaryFile
 
 
-nr_neurons = 150
+nr_neurons = 200
 ap1 = nr_neurons+1
-tau2 = 100
 delta1 = 1e-2
-sigma1 = 1e-2
-gsyn= 30
+sigma1 = 2e-2
+gsyn= 100
 domain = np.arange(0,nr_neurons)*delta1
 domain = np.array([domain])
-Vt = 0.02 
-Ie = 0.008 #minimum value for reaching threshold
-Ispike = Ie*np.exp(-np.arange(0,nr_neurons,1)*delta1/sigma1)
+Vt = 0.0
+# tau2 = 3
+# Ie = 0.001
+tau2 = 0.1
+Ie = 0.5
+Ispike = 0.1*Ie*np.exp(-np.arange(0,nr_neurons,1)*delta1/sigma1)
 Isyn = Ie*np.exp(-np.arange(0,nr_neurons,1)*delta1/sigma1)
 #Isyn = np.zeros((1,np.size(Isyn)))
 #Isyn = np.array(Isyn)
@@ -41,7 +43,8 @@ gH= 4
 EH= -0.021
 gl= 8
 El= -0.046
-Vrev= 0.01
+# Vrev= 0.01
+Vrev= -0.045 - 0.05
 
 #time scales
 Cm= 0.5
@@ -70,7 +73,7 @@ def vecf(t, y0):
 	v,h,m,n = y0
 	mNass=1./(1.+np.exp(-150.*(y0[0]+0.0305)))
 	mK2ss=1./(1.+np.exp(-83.*(y0[0]+K2theta)))
-	Ie_time_dependent = Ie_local*np.exp(-t/tau2)
+	Ie_time_dependent = Ie_local*np.exp(-(t-t_last)/tau2)
 
 	dv = (-1/Cm) * (gNa*mNass*mNass*mNass*y0[1]*(y0[0]-ENa)+ gK2*y0[3]*y0[3]*(y0[0]-EK) + gH*y0[2]*y0[2]*(y0[0]-EH) + gl*(y0[0]-El) + 0.006 +gsyn*Ie_time_dependent*(y0[0]-Vrev))
 	dh = (1/(1+ np.exp(500*(y0[0]+0.0325))) - y0[1])/tau_h
@@ -80,8 +83,8 @@ def vecf(t, y0):
 	return f
 
 def Vt_cross(t,y0): return y0[0]-Vt
-#Vt_cross.terminal= False
-Vt_cross.terminal= True
+Vt_cross.terminal= False
+# Vt_cross.terminal= True
 Vt_cross.direction = 1
 
 #initial conditions
@@ -93,11 +96,15 @@ for i in np.arange(0,nr_neurons):
 	statevar[i,:] = y0
 t1= 0
 ts = np.zeros((nr_neurons,1))
-
+t_last = 0
 Ie_local = Isyn[0]
+Ie_local = 0
 #tspan_pre = [ts[0], ts[0]+10]
+plt.figure()
+plt.ion()
 tspan_pre = [ts[0], ts[0]+int_time]
-presynaptic_neuron = solve_ivp(vecf, tspan_pre, y0,events= Vt_cross, method = 'RK45',rtol=1e-5,atol=1e-7)
+presynaptic_neuron = solve_ivp(vecf, tspan_pre, y2,events= Vt_cross, method = 'RK45',rtol=1e-5,atol=1e-7)
+# presynaptic_neuron = solve_ivp(vecf, tspan_pre, y0,events= Vt_cross, method = 'RK45',rtol=1e-5,atol=1e-7)
 if np.size(presynaptic_neuron.t_events)>0:
 	tspk = presynaptic_neuron.t_events[0]
 	ts[0] = tspk[0]
@@ -106,8 +113,9 @@ if np.size(presynaptic_neuron.t_events)>0:
 		Ie_local = Isyn[i]
 		postsynaptic_neuron = solve_ivp(vecf, tspan_post, statevar[i,:], method = 'RK45',rtol=1e-5,atol=1e-7)
 		statevar[i,:] = postsynaptic_neuron.y[:,-1]
-		#plt.plot(postsynaptic_neuron.t,postsynaptic_neuron.y[0,:])
-#plt.plot(presynaptic_neuron.t,presynaptic_neuron.y[0,:])
+		plt.plot(postsynaptic_neuron.t,postsynaptic_neuron.y[0,:])
+plt.plot(presynaptic_neuron.t,presynaptic_neuron.y[0,:])
+t_last = ts[0]
 ctr = 1
 Isyn1 = Isyn
 Isyn = Isyn*np.exp(-(ts[0] - t1)/tau2)
@@ -126,8 +134,8 @@ for ctr in np.arange(1,nr_neurons):
 			post_neuron = solve_ivp(vecf, tspan_post, statevar[i,:], method = 'RK45',rtol=1e-5,atol=1e-7)
 			statevar[i,:] = post_neuron.y[:,-1]
 			#plt.ion()
-			#plt.plot(post_neuron.t, post_neuron.y[0,:])
-			
+			plt.plot(post_neuron.t, post_neuron.y[0,:])
+		t_last = tspk[0]
 		Isyn = Isyn*np.exp(-(ts[ctr] - ts[ctr-1])/tau2)
 		Isyn[0:ctr] = 0
 		Isyn[ctr:nr_neurons] = Isyn[ctr:nr_neurons] + Ispike[0:nr_neurons-ctr]
@@ -136,10 +144,10 @@ for ctr in np.arange(1,nr_neurons):
 		#plt.plot(Isyn,label=str(ctr))
 	else: break
 	#plt.ion()
-	#plt.plot(neuron.t,neuron.y[0,:],label=str(ctr))
+	plt.plot(neuron.t,neuron.y[0,:],label=str(ctr))
 speed = delta1/np.diff(np.transpose(ts))
 c = speed[0]
-acceleration = np.diff(speed)/np.diff(np.diff(np.transpose(ts)))
+acceleration = np.diff(speed)/np.diff(np.transpose(ts[0:-1]))
 a = acceleration[0,:]
 plt.figure()
 plt.ion()
