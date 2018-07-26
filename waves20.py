@@ -83,8 +83,8 @@ def vecf(t, y0):
 	return f
 
 def Vt_cross(t,y0): return y0[0]-Vt
-Vt_cross.terminal= False
-# Vt_cross.terminal= True
+# Vt_cross.terminal= False
+Vt_cross.terminal= True
 Vt_cross.direction = 1
 
 #initial conditions
