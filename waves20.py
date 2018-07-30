@@ -10,10 +10,10 @@ from scipy.integrate import solve_ivp
 from tempfile import TemporaryFile
 
 
-nr_neurons = 200
+nr_neurons = 100
 ap1 = nr_neurons+1
 delta1 = 1e-2
-sigma1 = 2e-2
+sigma1 = 3e-2
 gsyn= 100
 domain = np.arange(0,nr_neurons)*delta1
 domain = np.array([domain])
