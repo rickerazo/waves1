@@ -7,8 +7,6 @@ from __future__ import division
 import numpy as np
 from matplotlib import pyplot as plt
 from scipy.integrate import solve_ivp
-from tempfile import TemporaryFile
-
 
 nr_neurons = 200
 delta1 = 1e-2
@@ -144,6 +142,7 @@ for ctr in range(0,nr_neurons):
 #plt.legend()
 
 c = delta1/np.diff(ts[0])
+c_par = c
 a = np.diff(c)/np.diff(ts[0,0:-1])
 
 plt.figure()

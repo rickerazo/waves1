@@ -7,7 +7,6 @@ from __future__ import division
 import numpy as np
 from matplotlib import pyplot as plt
 from scipy.integrate import solve_ivp
-from tempfile import TemporaryFile
 
 nr_neurons = 350
 delta1 = 1e-2
@@ -137,6 +136,7 @@ for ctr in np.arange(1,nr_neurons):
 	#plt.plot(neuron.t,neuron.y[0,:],label=str(ctr))
 speed = delta1/np.diff(np.transpose(ts))
 c = speed[0]
+c_piez = c
 acceleration = np.diff(speed)/np.diff(np.transpose(ts[0:-1]))
 a = acceleration[0,:]
 plt.figure()
